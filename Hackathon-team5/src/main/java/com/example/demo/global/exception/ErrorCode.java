@@ -22,6 +22,13 @@ public enum ErrorCode {
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH_002", "접근이 거절되었습니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH_003", "유저를 찾을 수 없습니다."),
     FORBIDDEN(HttpStatus.FORBIDDEN, "AUTH_004", "권한이 없습니다."),
+    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "AUTH_005", "비밀번호가 일치하지 않습니다."),
+    DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "AUTH_006", "이미 사용 중인 닉네임입니다."),
+
+    // JWT 관련 에러들
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_007", "유효하지 않은 토큰입니다."),
+    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_008", "만료된 토큰입니다."),
+
 
     // 리소스 에러들
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "RESOURCE_001", "요청한 리소스를 찾을 수 없습니다."),
@@ -42,7 +49,8 @@ public enum ErrorCode {
     ROOM_NOT_IN_PLAYING_STATUS(HttpStatus.BAD_REQUEST, "BUSINESS_006", "게임 중인 방에서만 가능한 작업입니다."),
     GAME_NOT_STARTED(HttpStatus.BAD_REQUEST, "BUSINESS_006", "게임이 진행 중일 때만 가능합니다."),
     NOT_A_THIEF(HttpStatus.BAD_REQUEST, "BUSINESS_007", "도둑만 탈옥할 수 있습니다."),
-    NOT_IN_JAIL(HttpStatus.BAD_REQUEST, "BUSINESS_008", "현재 감옥에 갇힌 상태가 아닙니다.");
+    NOT_IN_JAIL(HttpStatus.BAD_REQUEST, "BUSINESS_008", "현재 감옥에 갇힌 상태가 아닙니다."),
+    FILE_UPLOAD_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_004", "파일 업로드 중 오류가 발생했습니다."),;
 
 
     // TODO: 비즈니스 로직 개발하면서 필요한 에러코드들 추가

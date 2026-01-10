@@ -1,7 +1,5 @@
 package com.example.demo.global.infra;
 
-import com.example.demo.global.exception.BusinessException;
-import com.example.demo.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -9,35 +7,43 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner; // 추가
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest; // 추가
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class S3Service {
     private final S3Client s3Client;
+    private final S3Presigner s3Presigner; // 추가
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-    public String uploadFile(MultipartFile file) {
-        String fileName = "photos/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
+    public String uploadAndGetPresignedUrl(MultipartFile file) {
+        String key = "photos/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
 
         try {
-            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+            // 1. S3에 파일 업로드
+            s3Client.putObject(PutObjectRequest.builder()
                     .bucket(bucket)
-                    .key(fileName)
+                    .key(key)
                     .contentType(file.getContentType())
+                    .build(), RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+
+            // 2. 15분간 유효한 GET Presigned URL 생성
+            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(15)) // 유효 시간 15분
+                    .getObjectRequest(builder -> builder.bucket(bucket).key(key))
                     .build();
 
-            s3Client.putObject(putObjectRequest,
-                    RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+            return s3Presigner.presignGetObject(presignRequest).url().toString();
 
-            // 실제 배포 시에는 S3 도메인 주소를 포함한 전체 경로를 반환하도록 구성합니다.
-            return fileName;
         } catch (IOException e) {
-            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "파일 업로드 실패");
+            throw new RuntimeException("파일 업로드 중 오류 발생", e);
         }
     }
 }

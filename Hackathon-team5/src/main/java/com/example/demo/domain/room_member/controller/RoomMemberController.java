@@ -109,9 +109,9 @@ public class RoomMemberController {
             @Parameter(description = "방 ID") @PathVariable Long roomId,
             @Parameter(description = "사진 파일") @RequestPart MultipartFile photo) {
         // TODO: 구현 필요
-        String imageUrl = s3Service.uploadFile(photo);
+        String presignedUrl = s3Service.uploadAndGetPresignedUrl(photo);
 
-        return ApiResponse.success(new PhotoUploadResponseDto(imageUrl));
+        return ApiResponse.success(new PhotoUploadResponseDto(presignedUrl));
     }
 
     @PatchMapping("/participants/{userId}/capture")

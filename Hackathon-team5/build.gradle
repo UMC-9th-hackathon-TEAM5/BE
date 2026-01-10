@@ -1,0 +1,77 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.3'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+description = 'Demo project for Spring Boot'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springframework.boot:spring-boot-devtools'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+
+	// ModelMapper
+	implementation 'org.modelmapper:modelmapper:3.2.0'
+
+	// H2 데이터베이스 (개발/테스트용)
+	runtimeOnly 'com.h2database:h2'
+
+	// MySQL 데이터베이스에 접속하기 위한 JDBC 드라이버 (RDS 연결 시 필수)
+	implementation 'mysql:mysql-connector-java:8.0.33'
+
+	// S3
+	implementation 'software.amazon.awssdk:s3:2.25.57'
+
+	// WebP 이미지 지원 (Java ImageIO 확장)
+	implementation 'com.twelvemonkeys.imageio:imageio-webp:3.10.1'
+
+	// Cache (Spring Cache + Caffeine)
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// WebFlux (WebClient for streaming)
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+	// macOS DNS 최적화
+	runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.108.Final:osx-aarch_64'
+
+	//security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	testImplementation 'org.springframework.security:spring-security-test'
+
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

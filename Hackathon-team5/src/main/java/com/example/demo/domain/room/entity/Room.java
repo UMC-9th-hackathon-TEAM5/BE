@@ -23,8 +23,8 @@ public class Room extends BaseEntity {
     @Column(nullable = false)
     private String title;
 
-    @Column(name = "start_time", nullable = false)
-    private LocalDateTime startTime;
+    @Column(name = "meeting_time", nullable = false)
+    private LocalDateTime meetingTime;
 
     @Column(name = "countdown_seconds", nullable = false)
     private Integer countdownSeconds;

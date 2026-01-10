@@ -5,19 +5,17 @@ import com.example.demo.domain.room.dto.request.CreateRoomRequestDto;
 import com.example.demo.domain.room.dto.response.CreateRoomResponseDto;
 import com.example.demo.domain.room.dto.response.NearbyRoomsResponseDto;
 import com.example.demo.domain.room.dto.response.RoomDetailResponseDto;
-import com.example.demo.domain.room.entity.Room;
 import com.example.demo.domain.room.service.RoomService;
-import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.service.UserService;
 import com.example.demo.global.config.SwaggerConfig;
 import com.example.demo.global.exception.ErrorCode;
+import com.example.demo.global.security.annotation.AuthUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/rooms")
@@ -25,7 +23,7 @@ import java.util.List;
 @Tag(name = "Room", description = "방 관련 API")
 public class RoomController {
     private final RoomService roomService;
-    private final UserService userService;
+
 
     @GetMapping("/nearby")
     @Operation(summary = "주변 방 조회", description = "사용자 위치 기반으로 주변 방 목록 조회")
@@ -33,9 +31,11 @@ public class RoomController {
             ErrorCode.INVALID_INPUT_VALUE,
             ErrorCode.USER_NOT_FOUND
     })
-    public ApiResponse<NearbyRoomsResponseDto> getNearbyRooms() {
+    public ApiResponse<NearbyRoomsResponseDto> getNearbyRooms(
+            @AuthUser Long userId
+    ) {
 
-        NearbyRoomsResponseDto response = roomService.getRoomsForUser(1L);
+        NearbyRoomsResponseDto response = roomService.getRoomsForUser(userId);
 
         return ApiResponse.success(response);
     }
@@ -47,8 +47,9 @@ public class RoomController {
             ErrorCode.USER_NOT_FOUND
     })
     public ApiResponse<CreateRoomResponseDto> createRoom(
+            @AuthUser Long userId,
             @Valid @RequestBody CreateRoomRequestDto request) {
-        CreateRoomResponseDto responseDto = roomService.createRoom(request, 1L);
+        CreateRoomResponseDto responseDto = roomService.createRoom(request, userId);
 
         return ApiResponse.success(responseDto);
     }

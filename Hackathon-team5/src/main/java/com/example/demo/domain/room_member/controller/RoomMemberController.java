@@ -132,7 +132,7 @@ public class RoomMemberController {
         return ApiResponse.success("도둑을 검거했습니다! 현재 검거 횟수: " + captureCount, captureCount);
     }
 
-    @PatchMapping("/{roomId}/participants/{userId}/release")
+    @PatchMapping("/participants/{userId}/release")
     @Operation(summary = "탈옥", description = "도둑이 본인것만")
     @SwaggerConfig.ApiErrorExamples({
             ErrorCode.RESOURCE_NOT_FOUND,

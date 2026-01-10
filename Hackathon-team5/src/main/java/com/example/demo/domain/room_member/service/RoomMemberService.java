@@ -3,6 +3,8 @@ package com.example.demo.domain.room_member.service;
 import com.example.demo.domain.room.entity.Room;
 import com.example.demo.domain.room.entity.enums.RoomStatus;
 import com.example.demo.domain.room.repository.RoomRepository;
+import com.example.demo.domain.room_game.entity.RoomGameState;
+import com.example.demo.domain.room_game.service.RoomGameService;
 import com.example.demo.domain.room_member.converter.RoomMemberConverter;
 import com.example.demo.domain.room_member.dto.request.AssignRolesRequestDto;
 import com.example.demo.domain.room_member.dto.request.JoinRoomRequestDto;
@@ -13,6 +15,7 @@ import com.example.demo.domain.room_member.entity.RoomMember;
 import com.example.demo.domain.room_member.entity.enums.JoinStatus;
 import com.example.demo.domain.room_member.entity.enums.Role;
 import com.example.demo.domain.room_member.entity.enums.RolePreference;
+import com.example.demo.domain.room_member.entity.enums.ThiefState;
 import com.example.demo.domain.room_member.repository.RoomMemberRepository;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.service.UserService;
@@ -22,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,6 +41,7 @@ public class RoomMemberService {
     private final RoomRepository roomRepository;
     private final RoomMemberConverter roomMemberConverter;
     private final UserService userService;
+    private final RoomGameService roomGameService;
 
     @Transactional
     public void markAsArrived(Long roomId, Long targetUserId, Long hostUserId) {
@@ -223,6 +228,14 @@ public class RoomMemberService {
         // 7. 방 상태를 PLAYING으로 변경
         room.updateStatus(RoomStatus.PLAYING);
         System.out.println("방 상태 변경: roomId=" + roomId + ", status=PLAYING");
+
+        RoomGameState gameState = RoomGameState.builder()
+                .roomId(room.getId())
+                .room(room)
+                .playingAt(LocalDateTime.now())         // 게임 시작 시간 기록
+                .build();
+
+        roomGameService.saveState(gameState);
 
         // 8. 응답 DTO 생성 및 반환
         System.out.println("=== 응답 생성 전 멤버 수: " + allMembers.size());

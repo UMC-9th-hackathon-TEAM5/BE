@@ -25,8 +25,6 @@ public class GameStatusResponseDto {
     @Schema(description = "게임 통계")
     private GameStats stats;
 
-    @Schema(description = "내 정보")
-    private MyGameInfo myInfo;
 
     @Schema(description = "참가자 목록")
     private List<GameParticipant> participants;
@@ -48,22 +46,6 @@ public class GameStatusResponseDto {
         private Integer remainingThieves;
     }
 
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Schema(description = "내 게임 정보")
-    public static class MyGameInfo {
-
-        @Schema(description = "사용자 ID", example = "1")
-        private Long userId;
-
-        @Schema(description = "내 역할 (POLICE, THIEF)", example = "THIEF")
-        private String myRole;
-
-        @Schema(description = "생존 여부", example = "true")
-        private Boolean isAlive;
-    }
 
     @Data
     @Builder

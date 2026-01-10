@@ -32,6 +32,10 @@ public class RoomMember extends BaseEntity {
     private Role role;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "role_preference")
+    private RolePreference rolePreference;
+
+    @Enumerated(EnumType.STRING)
     private ThiefState thiefState;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -44,4 +48,17 @@ public class RoomMember extends BaseEntity {
 
     @Column(name = "caught_at")
     private LocalDateTime caughtAt;
+
+    @Column(name = "is_arrived", nullable = false)
+    @Builder.Default
+    private Boolean isArrived = false;
+
+    public void updateToArrived() {
+        // JoinStatus를 VERIFIED(도착 완료)로 변경
+        this.joinStatus = com.example.demo.domain.room_member.entity.enums.JoinStatus.VERIFIED;
+    }
+
+    public void assignRole(Role role) {
+        this.role = role;
+    }
 }

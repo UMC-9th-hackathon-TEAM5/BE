@@ -28,7 +28,7 @@ public enum ErrorCode {
     ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "RESOURCE_002", "방을 찾을 수 없습니다."),
     ROOM_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "RESOURCE_003", "방 참가자를 찾을 수 없습니다."),
 
-    GAME_STATE_NOT_FOUND
+    GAME_STATE_NOT_FOUND(HttpStatus.NOT_FOUND, "RESOURCE_004", "game state를 찾을 수 없습니다."),
 
     // 충돌 오류
     CONCURRENCY_CONFLICT(HttpStatus.CONFLICT, "CONFLICT_001", "요청이 다른 사용자와 충돌했습니다. 페이지를 새로고침 후 다시 시도해주세요."),

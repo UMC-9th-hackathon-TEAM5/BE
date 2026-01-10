@@ -1,0 +1,42 @@
+package com.example.demo.domain.room_game.entity;
+
+import com.example.demo.domain.room.entity.Room;
+import com.example.demo.domain.room_game.entity.enums.*;
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "room_game_state")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+public class RoomGameState {
+
+    @Id
+    private Long roomId;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @MapsId
+    @JoinColumn(name = "room_id")
+    private Room room;
+
+    @Column(name = "playing_at")
+    private LocalDateTime playingAt;
+
+    @Column(name = "playtime_seconds", nullable = false)
+    private Integer playtimeSeconds;
+
+    @Column(name = "finished_at")
+    private LocalDateTime finishedAt;
+
+    @Enumerated(EnumType.STRING)
+    private FinishReason finishReason;
+
+    @Enumerated(EnumType.STRING)
+    private WinningTeam winningTeam;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+}

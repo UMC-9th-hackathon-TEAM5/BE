@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @Builder
 public class User extends BaseEntity {
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String nickname;
 
     @Column(name = "password_hash", nullable = false)

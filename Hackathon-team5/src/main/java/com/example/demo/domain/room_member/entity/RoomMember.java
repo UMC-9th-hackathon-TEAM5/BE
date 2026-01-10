@@ -4,6 +4,8 @@ import com.example.demo.common.entity.BaseEntity;
 import com.example.demo.domain.room.entity.Room;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.room_member.entity.enums.*;
+import com.example.demo.global.exception.BusinessException;
+import com.example.demo.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;

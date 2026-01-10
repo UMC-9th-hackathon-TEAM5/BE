@@ -26,6 +26,8 @@ public enum ErrorCode {
     // 리소스 에러들
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "RESOURCE_001", "요청한 리소스를 찾을 수 없습니다."),
 
+    ROOM_ID_NOT_FOUND(HttpStatus.NOT_FOUND, "ROOM_001", "요청한 room을 찾을 수 없습니다."),
+
     // 충돌 오류
     CONCURRENCY_CONFLICT(HttpStatus.CONFLICT, "CONFLICT_001", "요청이 다른 사용자와 충돌했습니다. 페이지를 새로고침 후 다시 시도해주세요.");
 

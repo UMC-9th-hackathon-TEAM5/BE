@@ -16,12 +16,13 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Room Game", description = "게임 상태 관련 API")
 public class RoomGameController {
 
-    @GetMapping("/status")
-    @Operation(summary = "게임 현황 및 시간 동기화", description = "G1,2")
+
+    @GetMapping("/finish")
+    @Operation(summary = "게임 종료")
     @SwaggerConfig.ApiErrorExamples({
-            ErrorCode.RESOURCE_NOT_FOUND
+            ErrorCode.ROOM_ID_NOT_FOUND
     })
-    public ApiResponse<GameStatusResponseDto> getGameStatus(
+    public ApiResponse<GameStatusResponseDto> GameFinish(
             @Parameter(description = "방 ID") @PathVariable Long roomId) {
         // TODO: 구현 필요
         return ApiResponse.success(new GameStatusResponseDto());

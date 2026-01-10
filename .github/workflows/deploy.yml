@@ -44,7 +44,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             sudo fuser -k 8080/tcp || true
-            JAR_NAME=$(ls -t ~/ | grep .jar | head -n 1)
+            JAR_NAME=$(ls -t ~/ | grep .jar | grep -v plain | head -n 1)
             nohup java -jar \
               -Dspring.profiles.active=prod \
               -DRDS_URL="${{ secrets.RDS_URL }}" \

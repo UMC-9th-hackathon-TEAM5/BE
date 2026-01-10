@@ -60,4 +60,5 @@ public class RoomMemberConverter {
 
         return new ParticipantResponseDto(roomId, infoList);
     }
+
 }

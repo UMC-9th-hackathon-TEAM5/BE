@@ -4,6 +4,7 @@ import com.example.demo.common.response.ApiResponse;
 import com.example.demo.domain.room.dto.request.CreateRoomRequestDto;
 import com.example.demo.domain.room.dto.response.CreateRoomResponseDto;
 import com.example.demo.domain.room.dto.response.NearbyRoomsResponseDto;
+import com.example.demo.domain.room.service.RoomService;
 import com.example.demo.global.config.SwaggerConfig;
 import com.example.demo.global.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "Room", description = "방 관련 API")
 public class RoomController {
+    private final RoomService roomService;
 
     @GetMapping("/nearby")
     @Operation(summary = "주변 방 조회", description = "사용자 위치 기반으로 주변 방 목록 조회")
@@ -41,7 +43,8 @@ public class RoomController {
     })
     public ApiResponse<CreateRoomResponseDto> createRoom(
             @Valid @RequestBody CreateRoomRequestDto request) {
-        // TODO: 구현 필요
-        return ApiResponse.success(new CreateRoomResponseDto());
+        CreateRoomResponseDto responseDto = roomService.createRoom(request, 1L);
+
+        return ApiResponse.success(responseDto);
     }
 }

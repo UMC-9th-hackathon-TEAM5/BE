@@ -30,7 +30,7 @@ public class Room extends BaseEntity {
     private Integer countdownSeconds;
 
     @Column(name = "escape_time", nullable = false)
-    private LocalDateTime escapeTime;
+    private Integer escapeTime;
 
     @Column(columnDefinition = "TEXT")
     private String discription;

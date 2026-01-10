@@ -1,5 +1,6 @@
 package com.example.demo.domain.room_game.dto.response;
 
+import com.example.demo.domain.room_member.entity.enums.ThiefState;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,29 +23,9 @@ public class GameStatusResponseDto {
     @Schema(description = "게임 종료 시간", example = "2026-01-10T16:30:00")
     private LocalDateTime endTime;
 
-    @Schema(description = "게임 통계")
-    private GameStats stats;
-
-
     @Schema(description = "참가자 목록")
     private List<GameParticipant> participants;
 
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Schema(description = "게임 통계")
-    public static class GameStats {
-
-        @Schema(description = "도둑 총 인원", example = "10")
-        private Integer totalThieves;
-
-        @Schema(description = "검거된 도둑 수", example = "3")
-        private Integer capturedThieves;
-
-        @Schema(description = "남은 도둑 수", example = "7")
-        private Integer remainingThieves;
-    }
 
 
     @Data
@@ -64,9 +45,12 @@ public class GameStatusResponseDto {
         private String role;
 
         @Schema(description = "생존 여부", example = "true")
-        private Boolean isAlive;
+        private ThiefState isAlive;
 
         @Schema(description = "도착 여부", example = "true")
         private Boolean isArrived;
+
+        @Schema(description = "경찰일 경우에만 잡은 횟수 반환")
+        private Integer caughtCount;
     }
 }

@@ -55,6 +55,9 @@ public class RoomMember extends BaseEntity {
     @Builder.Default
     private Boolean isArrived = false;
 
+    @Column(name = "caught_count")
+    private Integer caughtCount;
+
     public void updateToArrived() {
         // JoinStatus를 VERIFIED(도착 완료)로 변경
         this.joinStatus = com.example.demo.domain.room_member.entity.enums.JoinStatus.VERIFIED;
@@ -68,6 +71,7 @@ public class RoomMember extends BaseEntity {
         this.thiefState = ThiefState.CAUGHT;
         this.caughtByUser = policeUser;
         this.caughtAt = LocalDateTime.now();
+        this.caughtCount = this.caughtCount + 1;
     }
 
     public void release() {

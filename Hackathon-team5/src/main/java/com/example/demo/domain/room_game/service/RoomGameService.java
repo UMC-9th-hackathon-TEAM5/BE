@@ -53,16 +53,15 @@ public class RoomGameService {
         // 6. 참가자 목록 조회
         List<RoomMember> members = roomMemberRepository.findAllByRoomIdWithUser(roomId);
 
-        //TODO stat 추가(몇번 잡았는지)
-
         // 8. 참가자 정보 변환
         List<GameStatusResponseDto.GameParticipant> participants = members.stream()
                 .map(member -> GameStatusResponseDto.GameParticipant.builder()
                         .userId(member.getUser().getId())
                         .nickname(member.getUser().getNickname())
                         .role(member.getRole() != null ? member.getRole().name() : null)
-                        .isAlive(member.getCaughtByUser() == null)
+                        .isAlive(member.getThiefState())
                         .isArrived(member.getIsArrived())
+                        .caughtCount(member.getCaughtCount())
                         .build())
                 .collect(Collectors.toList());
 

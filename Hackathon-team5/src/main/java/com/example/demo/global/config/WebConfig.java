@@ -41,12 +41,12 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(@NonNull CorsRegistry registry) {
-        registry.addMapping("/api/v1/chatrooms/stream")
-                .allowedOriginPatterns("*") // iOS 앱 개발 환경 고려
-                .allowedMethods("POST", "GET", "OPTIONS")
+        // 전역 CORS 설정
+        registry.addMapping("/**")
+                .allowedOriginPatterns("*")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(true)
-                .exposedHeaders("Content-Type", "Cache-Control", "Connection") // SSE 필수 헤더 노출
+                .allowCredentials(false)
                 .maxAge(3600);
     }
 

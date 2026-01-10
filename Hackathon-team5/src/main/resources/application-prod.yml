@@ -20,12 +20,6 @@ spring:
       enabled: false
   thymeleaf:
     cache: true
-  web:
-    cors:
-      allowed-origins: "*"
-      allowed-methods: "*"
-      allowed-headers: "*"
-      allow-credentials: false
 
 server:
   port: ${SERVER_PORT:8080}

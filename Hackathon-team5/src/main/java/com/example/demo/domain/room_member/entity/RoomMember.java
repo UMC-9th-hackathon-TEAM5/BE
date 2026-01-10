@@ -4,6 +4,8 @@ import com.example.demo.common.entity.BaseEntity;
 import com.example.demo.domain.room.entity.Room;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.room_member.entity.enums.*;
+import com.example.demo.global.exception.BusinessException;
+import com.example.demo.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -53,6 +55,9 @@ public class RoomMember extends BaseEntity {
     @Builder.Default
     private Boolean isArrived = false;
 
+    @Column(name = "caught_count")
+    private Integer caughtCount;
+
     public void updateToArrived() {
         // JoinStatus를 VERIFIED(도착 완료)로 변경
         this.joinStatus = com.example.demo.domain.room_member.entity.enums.JoinStatus.VERIFIED;
@@ -61,4 +66,35 @@ public class RoomMember extends BaseEntity {
     public void assignRole(Role role) {
         this.role = role;
     }
+
+    public void updateToCaught(User policeUser) {
+        this.thiefState = ThiefState.CAUGHT;
+        this.caughtByUser = policeUser;
+        this.caughtAt = LocalDateTime.now();
+
+    }
+    public void updateCaughtCount(){
+        this.caughtCount = this.caughtCount + 1;
+    }
+
+    public void release() {
+        // 도둑인지 확인
+        if(this.role != Role.THIEF) {
+            throw new BusinessException(ErrorCode.NOT_A_THIEF);
+        }
+
+        // 검거 상태인지 확인
+        if(this.thiefState != ThiefState.CAUGHT) {
+            throw new BusinessException(ErrorCode.NOT_IN_JAIL);
+        }
+
+        // 상태 변경
+        this.thiefState = ThiefState.ALIVE;
+
+        // 정보 업데이트
+        this.caughtByUser = null;
+        this.caughtAt = null;
+
+    }
 }
+

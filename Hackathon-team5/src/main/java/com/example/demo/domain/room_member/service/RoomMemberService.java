@@ -3,6 +3,8 @@ package com.example.demo.domain.room_member.service;
 import com.example.demo.domain.room.entity.Room;
 import com.example.demo.domain.room.entity.enums.RoomStatus;
 import com.example.demo.domain.room.repository.RoomRepository;
+import com.example.demo.domain.room_game.entity.RoomGameState;
+import com.example.demo.domain.room_game.service.RoomGameService;
 import com.example.demo.domain.room_member.converter.RoomMemberConverter;
 import com.example.demo.domain.room_member.dto.request.AssignRolesRequestDto;
 import com.example.demo.domain.room_member.dto.request.JoinRoomRequestDto;
@@ -13,6 +15,7 @@ import com.example.demo.domain.room_member.entity.RoomMember;
 import com.example.demo.domain.room_member.entity.enums.JoinStatus;
 import com.example.demo.domain.room_member.entity.enums.Role;
 import com.example.demo.domain.room_member.entity.enums.RolePreference;
+import com.example.demo.domain.room_member.entity.enums.ThiefState;
 import com.example.demo.domain.room_member.repository.RoomMemberRepository;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.service.UserService;
@@ -22,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,6 +41,7 @@ public class RoomMemberService {
     private final RoomRepository roomRepository;
     private final RoomMemberConverter roomMemberConverter;
     private final UserService userService;
+    private final RoomGameService roomGameService;
 
     @Transactional
     public void markAsArrived(Long roomId, Long targetUserId, Long hostUserId) {
@@ -224,10 +229,76 @@ public class RoomMemberService {
         room.updateStatus(RoomStatus.PLAYING);
         System.out.println("방 상태 변경: roomId=" + roomId + ", status=PLAYING");
 
+        RoomGameState gameState = RoomGameState.builder()
+                .roomId(room.getId())
+                .room(room)
+                .playingAt(LocalDateTime.now())         // 게임 시작 시간 기록
+                .build();
+
+        roomGameService.saveState(gameState);
+
         // 8. 응답 DTO 생성 및 반환
         System.out.println("=== 응답 생성 전 멤버 수: " + allMembers.size());
         allMembers.forEach(m -> System.out.println("최종 상태: userId=" + m.getUser().getId() + ", role=" + m.getRole()));
         return roomMemberConverter.convertToAssignRolesResponseDto(roomId, allMembers);
+    }
+
+    @Transactional
+    public void captureThief(Long roomId, Long thiefUserId, Long policeUserId) {
+        // 1. 방 존재 및 게임 진행 상태 확인
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_NOT_FOUND));
+
+        if (room.getStatus() != RoomStatus.PLAYING) {
+            throw new BusinessException(ErrorCode.ROOM_NOT_IN_WAITING_STATUS, "게임이 진행 중인 방에서만 검거가 가능합니다.");
+        }
+
+        // 2. 경찰 확인
+        RoomMember police = roomMemberRepository.findByRoom_IdAndUser_Id(roomId, policeUserId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_MEMBER_NOT_FOUND));
+
+        if (police.getRole() != Role.POLICE) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "경찰만 도둑을 잡을 수 있습니다.");
+        }
+
+        // 3. 도둑 확인
+        RoomMember thief = roomMemberRepository.findByRoom_IdAndUser_Id(roomId, thiefUserId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_MEMBER_NOT_FOUND));
+
+        if (thief.getRole() != Role.THIEF) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "검거 대상이 도둑이 아닙니다.");
+        }
+
+        if (thief.getThiefState() == ThiefState.CAUGHT) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "이미 검거된 도둑입니다.");
+        }
+
+        // 4. 도둑 상태 업데이트 (검거 처리)
+        thief.updateToCaught(police.getUser());
+        police.updateCaughtCount();
+    }
+
+    /**
+     * 경찰이 해당 방에서 도둑을 몇 명 잡았는지 카운트하는 메서드
+     */
+
+
+    @Transactional
+    public void releaseThief(Long roomId, Long userId) {
+        // 해당 유저 존재 확인
+        RoomMember member = roomMemberRepository.findByRoom_IdAndUser_Id(roomId, userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_MEMBER_NOT_FOUND));
+
+        // 방 존재 여부 확인
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_NOT_FOUND));
+
+        // 게임 상태 확인
+        if(room.getStatus() != RoomStatus.PLAYING) {
+            throw new BusinessException(ErrorCode.GAME_NOT_STARTED);
+        }
+
+        member.release();
     }
 
 }

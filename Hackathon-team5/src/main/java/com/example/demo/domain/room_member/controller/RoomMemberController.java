@@ -113,25 +113,37 @@ public class RoomMemberController {
     @PatchMapping("/participants/{userId}/capture")
     @Operation(summary = "도둑 검거")
     @SwaggerConfig.ApiErrorExamples({
-            ErrorCode.RESOURCE_NOT_FOUND
-    })
-    public ApiResponse<Void> captureThief(
+            ErrorCode.ROOM_NOT_FOUND,
+            ErrorCode.ROOM_MEMBER_NOT_FOUND,
+            ErrorCode.FORBIDDEN,
+            ErrorCode.INVALID_INPUT_VALUE    })
+    public ApiResponse<?> captureThief(
             @Parameter(description = "방 ID") @PathVariable Long roomId,
-            @Parameter(description = "사용자 ID") @PathVariable Long userId) {
+            @Parameter(description = "검거한 도둑의 ID") @PathVariable Long userId) {
         // TODO: 구현 필요
-        return ApiResponse.success(null);
+        Long currentPoliceId = 1L;
+
+        // 1. 검거 로직 실행
+        roomMemberService.captureThief(roomId, userId, currentPoliceId);
+
+
+        return ApiResponse.success("도둑을 검거했습니다!");
     }
 
     @PatchMapping("/participants/{userId}/release")
     @Operation(summary = "탈옥", description = "도둑이 본인것만")
     @SwaggerConfig.ApiErrorExamples({
             ErrorCode.RESOURCE_NOT_FOUND,
-            ErrorCode.FORBIDDEN
+            ErrorCode.FORBIDDEN,
+            ErrorCode.GAME_NOT_STARTED,
+            ErrorCode.NOT_A_THIEF,
+            ErrorCode.NOT_IN_JAIL
     })
     public ApiResponse<Void> releaseThief(
             @Parameter(description = "방 ID") @PathVariable Long roomId,
             @Parameter(description = "사용자 ID (본인)") @PathVariable Long userId) {
-        // TODO: 구현 필요
+
+        roomMemberService.releaseThief(roomId, userId);
         return ApiResponse.success(null);
     }
 }

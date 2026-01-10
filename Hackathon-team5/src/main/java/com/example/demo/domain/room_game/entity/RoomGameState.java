@@ -42,4 +42,15 @@ public class RoomGameState {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public void finishGame(FinishReason finishReason, WinningTeam winningTeam) {
+        this.finishedAt = LocalDateTime.now();
+        // LocalDateTime 차이를 초 단위로 계산
+        if (this.playingAt != null) {
+            this.playtimeSeconds = (int) java.time.Duration.between(this.playingAt, this.finishedAt).getSeconds();
+        }
+        this.finishReason = finishReason;
+        this.winningTeam = winningTeam;
+        this.updatedAt = LocalDateTime.now();
+    }
 }

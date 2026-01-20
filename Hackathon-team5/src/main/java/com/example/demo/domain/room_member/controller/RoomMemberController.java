@@ -6,6 +6,7 @@ import com.example.demo.domain.room.repository.RoomRepository;
 import com.example.demo.domain.room_member.dto.request.AssignRolesRequestDto;
 import com.example.demo.domain.room_member.dto.request.JoinRoomRequestDto;
 import com.example.demo.domain.room_member.dto.response.AssignRolesResponseDto;
+import com.example.demo.domain.room_member.dto.response.ArrivalToggleResponseDto;
 import com.example.demo.domain.room_member.dto.response.CaptureThiefResponseDto;
 import com.example.demo.domain.room_member.dto.response.JoinRoomResponseDto;
 import com.example.demo.domain.room_member.dto.response.LeaveRoomResponseDto;
@@ -101,27 +102,27 @@ public class RoomMemberController {
     }
 
     @PatchMapping("/participants/{targetUserId}/arrival")
-    @Operation(summary = "도착으로 변경", description = "방장 전용 - 대기방에 있는 참여자의 도착 여부를 변경합니다.")
+    @Operation(summary = "도착 상태 토글", description = "방장 전용 - 대기방에 있는 참여자의 도착 여부를 토글합니다. (도착 ↔ 미도착)")
     @SwaggerConfig.ApiErrorExamples({
             ErrorCode.ROOM_NOT_FOUND,
             ErrorCode.ROOM_MEMBER_NOT_FOUND,
             ErrorCode.ONLY_HOST_ALLOWED,
             ErrorCode.ROOM_NOT_IN_WAITING_STATUS
     })
-    public ApiResponse<Void> updateArrival(
-            @Parameter(hidden = true)@AuthUser Long userId,
-            @Parameter(description = "바꾸려는 user ID") @PathVariable  Long targetUserId,
-            @Parameter(description = "방 ID") @PathVariable Long roomId){
+    public ApiResponse<ArrivalToggleResponseDto> toggleArrival(
+            @Parameter(hidden = true) @AuthUser Long userId,
+            @Parameter(description = "바꾸려는 user ID") @PathVariable Long targetUserId,
+            @Parameter(description = "방 ID") @PathVariable Long roomId) {
         Room room = roomRepository.findById(roomId).orElseThrow(() -> new BusinessException(ErrorCode.ROOM_NOT_FOUND));
         Long hostUserId = room.getHost().getId();
 
-        if(!userId.equals(hostUserId)){
+        if (!userId.equals(hostUserId)) {
             throw new BusinessException(ErrorCode.ONLY_HOST_ALLOWED);
         }
 
-        roomMemberService.markAsArrived(roomId, targetUserId, hostUserId);
+        ArrivalToggleResponseDto response = roomMemberService.toggleArrival(roomId, targetUserId, hostUserId);
 
-        return ApiResponse.success(null);
+        return ApiResponse.success(response);
     }
 
 

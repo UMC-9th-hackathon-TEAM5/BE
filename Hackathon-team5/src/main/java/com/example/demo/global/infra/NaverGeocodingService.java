@@ -48,6 +48,7 @@ public class NaverGeocodingService {
                 .uri("https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query={query}", address)
                 .header("X-NCP-APIGW-API-KEY-ID", clientId)
                 .header("X-NCP-APIGW-API-KEY", clientSecret)
+                .header("Referer", "https://hackathon2026.kro.kr/")
                 .retrieve()
                 .bodyToMono(Map.class)
                 .block();

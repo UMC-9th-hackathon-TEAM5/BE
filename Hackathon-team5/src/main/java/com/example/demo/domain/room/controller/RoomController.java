@@ -4,6 +4,7 @@ import com.example.demo.common.response.ApiResponse;
 import com.example.demo.domain.room.dto.request.CreateRoomRequestDto;
 import com.example.demo.domain.room.dto.response.CreateRoomResponseDto;
 import com.example.demo.domain.room.dto.response.NearbyRoomsResponseDto;
+import com.example.demo.domain.room.dto.response.PlaceSearchResponseDto;
 import com.example.demo.domain.room.dto.response.RoomDetailResponseDto;
 import com.example.demo.domain.room.service.RoomService;
 import com.example.demo.domain.user.service.UserService;
@@ -64,6 +65,15 @@ public class RoomController {
             @PathVariable Long roomId) {
         RoomDetailResponseDto response = roomService.getRoomDetail(roomId);
 
+        return ApiResponse.success(response);
+    }
+
+    @GetMapping("/places/search")
+    @Operation(summary = "장소 검색", description = "키워드로 장소를 검색합니다. 최대 5개 결과를 반환합니다.")
+    public ApiResponse<PlaceSearchResponseDto> searchPlaces(
+            @Parameter(hidden = true) @AuthUser Long userId,
+            @RequestParam String keyword) {
+        PlaceSearchResponseDto response = roomService.searchPlaces(keyword, userId);
         return ApiResponse.success(response);
     }
 

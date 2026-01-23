@@ -48,6 +48,15 @@ public class Room extends BaseEntity {
     @Column(name = "place_text")
     private String placeText;
 
+    @Column(name = "place_address", nullable = false)
+    private String placeAddress;
+
+    @Column(name = "prison_place_name", nullable = false)
+    private String prisonPlaceName;
+
+    @Column(name = "prison_address", nullable = false)
+    private String prisonAddress;
+
     @Column(nullable = false, precision = 10, scale = 7)
     private BigDecimal latitude;
 

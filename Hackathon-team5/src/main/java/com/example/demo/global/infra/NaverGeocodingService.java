@@ -33,16 +33,19 @@ public class NaverGeocodingService {
         this.clientId = clientId.trim();
         this.clientSecret = clientSecret.trim();
         this.webClient = WebClient.builder()
-                .baseUrl("https://naveropenapi.apigw.ntruss.com/map-geocode/v2")
+                .filter((request, next) -> {
+                    log.info(">>> [REQUEST] URL: {}", request.url());
+                    request.headers().forEach((name, values) ->
+                            log.info(">>> [REQUEST] Header: {} = {}", name, values));
+                    return next.exchange(request);
+                })
                 .build();
     }
 
     public BigDecimal[] getCoordinates(String address) {
+        log.info(">>> [DEBUG] address: {}", address);
         Map response = webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/geocode")
-                        .queryParam("query", address)
-                        .build())
+                .uri("https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query={query}", address)
                 .header("X-NCP-APIGW-API-KEY-ID", clientId)
                 .header("X-NCP-APIGW-API-KEY", clientSecret)
                 .retrieve()

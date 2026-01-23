@@ -30,8 +30,8 @@ public class NaverGeocodingService {
 
         this.webClient = WebClient.builder()
                 .baseUrl("https://naveropenapi.apigw.ntruss.com/map-geocode/v2")
-                .defaultHeader("X-NCP-APIGW-API-KEY-ID", clientId)
-                .defaultHeader("X-NCP-APIGW-API-KEY", clientSecret)
+                .defaultHeader("X-NCP-APIGW-API-KEY-ID", clientId.trim())
+                .defaultHeader("X-NCP-APIGW-API-KEY", clientSecret.trim())
                 .build();
     }
 

@@ -66,4 +66,17 @@ public class RoomController {
 
         return ApiResponse.success(response);
     }
+
+    @DeleteMapping("/{roomId}")
+    @Operation(summary = "방 삭제", description = "방장만 방을 삭제할 수 있습니다.")
+    @SwaggerConfig.ApiErrorExamples({
+            ErrorCode.ROOM_NOT_FOUND,
+            ErrorCode.ONLY_HOST_ALLOWED
+    })
+    public ApiResponse<Void> deleteRoom(
+            @Parameter(hidden = true) @AuthUser Long userId,
+            @PathVariable Long roomId) {
+        roomService.deleteRoom(roomId, userId);
+        return ApiResponse.success(null);
+    }
 }

@@ -385,8 +385,7 @@ public class RoomMemberService {
                     .toList();
 
             if (otherMembers.isEmpty()) {
-                // 다른 참가자가 없으면 방 삭제
-                roomMemberRepository.delete(member);
+                // 다른 참가자가 없으면 방 삭제 (cascade로 member도 삭제)
                 roomRepository.delete(room);
             } else {
                 // 다른 참가자 중 첫 번째 사람에게 방장 위임

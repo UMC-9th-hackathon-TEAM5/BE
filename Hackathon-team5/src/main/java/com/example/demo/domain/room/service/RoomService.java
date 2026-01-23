@@ -91,6 +91,18 @@ public class RoomService {
                 .build();
     }
 
+    @Transactional
+    public void deleteRoom(Long roomId, Long userId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_NOT_FOUND));
+
+        if (!room.getHost().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.ONLY_HOST_ALLOWED);
+        }
+
+        roomRepository.delete(room);
+    }
+
     @Transactional(readOnly = true)
     public RoomDetailResponseDto getRoomDetail(Long roomId) {
         // 1. 방 존재 여부 확인

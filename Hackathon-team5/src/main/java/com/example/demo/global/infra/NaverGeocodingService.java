@@ -16,39 +16,23 @@ import java.util.Map;
 public class NaverGeocodingService {
 
     private final WebClient webClient;
-    private final String clientId;
-    private final String clientSecret;
+    private final String apiKey;
 
     public NaverGeocodingService(
-            @Value("${naver.maps.client-id}") String clientId,
-            @Value("${naver.maps.client-secret}") String clientSecret
-
+            @Value("${kakao.rest-api-key}") String apiKey
     ) {
-        log.info("==================================================");
-        log.info(">>> [DEBUG] Naver Maps Client ID: {}", clientId);
-
-        log.info(">>> [DEBUG] Naver Maps Secret: {}", clientSecret);
-        log.info("==================================================");
-
-        this.clientId = clientId.trim();
-        this.clientSecret = clientSecret.trim();
+        this.apiKey = apiKey;
         this.webClient = WebClient.builder()
-                .filter((request, next) -> {
-                    log.info(">>> [REQUEST] URL: {}", request.url());
-                    request.headers().forEach((name, values) ->
-                            log.info(">>> [REQUEST] Header: {} = {}", name, values));
-                    return next.exchange(request);
-                })
+                .baseUrl("https://dapi.kakao.com/v2/local/search/address.json")
+                .defaultHeader("Authorization", "KakaoAK " + apiKey)
                 .build();
     }
 
     public BigDecimal[] getCoordinates(String address) {
-        log.info(">>> [DEBUG] address: {}", address);
         Map response = webClient.get()
-                .uri("https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query={query}", address)
-                .header("X-NCP-APIGW-API-KEY-ID", clientId)
-                .header("X-NCP-APIGW-API-KEY", clientSecret)
-                .header("Referer", "https://hackathon2026.kro.kr/")
+                .uri(uriBuilder -> uriBuilder
+                        .queryParam("query", address)
+                        .build())
                 .retrieve()
                 .bodyToMono(Map.class)
                 .block();
@@ -57,13 +41,13 @@ public class NaverGeocodingService {
             throw new BusinessException(ErrorCode.GEOCODING_FAILED);
         }
 
-        List<Map<String, Object>> addresses = (List<Map<String, Object>>) response.get("addresses");
+        List<Map<String, Object>> documents = (List<Map<String, Object>>) response.get("documents");
 
-        if (addresses == null || addresses.isEmpty()) {
+        if (documents == null || documents.isEmpty()) {
             throw new BusinessException(ErrorCode.GEOCODING_FAILED);
         }
 
-        Map<String, Object> first = addresses.get(0);
+        Map<String, Object> first = documents.get(0);
         BigDecimal lng = new BigDecimal((String) first.get("x"));
         BigDecimal lat = new BigDecimal((String) first.get("y"));
 

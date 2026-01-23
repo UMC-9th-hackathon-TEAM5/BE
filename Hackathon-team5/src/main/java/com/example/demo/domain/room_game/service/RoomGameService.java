@@ -49,8 +49,8 @@ public class RoomGameService {
         // 4. 게임 종료 처리
         gameState.finishGame(finishReason, winningTeam);
 
-        // 5. 방 상태를 FINISHED로 변경
-        room.updateStatus(RoomStatus.FINISHED);
+        // 5. 방 상태를 WAITING으로 변경
+        room.updateStatus(RoomStatus.WAITING);
 
         // 6. 참가자 목록 조회
         List<RoomMember> members = roomMemberRepository.findAllByRoomIdWithUser(roomId);

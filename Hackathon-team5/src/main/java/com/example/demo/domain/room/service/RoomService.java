@@ -14,13 +14,20 @@ import com.example.demo.domain.room_member.entity.enums.JoinStatus;
 import com.example.demo.domain.room_member.repository.RoomMemberRepository;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.service.UserService;
+import com.example.demo.domain.room.dto.response.PlaceSearchResponseDto;
 import com.example.demo.global.exception.BusinessException;
+import com.example.demo.global.infra.NaverSearchService.PlaceResult;
 import com.example.demo.global.exception.ErrorCode;
+import com.example.demo.global.infra.NaverGeocodingService;
+import com.example.demo.global.infra.NaverSearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,16 +37,27 @@ public class RoomService {
     private final RoomMemberRepository roomMemberRepository;
     private final UserService userService;
     private final RoomConverter roomConverter;
+    private final NaverGeocodingService naverGeocodingService;
+    private final NaverSearchService naverSearchService;
+    private final Map<Long, Long> searchRateLimit = new ConcurrentHashMap<>();
 
     @Transactional
     public CreateRoomResponseDto createRoom(CreateRoomRequestDto dto, Long userId) {
         User user = userService.getUserById(userId);
+
+        BigDecimal[] coordinates = naverGeocodingService.getCoordinates(dto.getAddress());
+        BigDecimal lat = coordinates[0];
+        BigDecimal lng = coordinates[1];
+
         Room room = Room.builder()
                 .host(user)
                 .title(dto.getTitle())
                 .placeText(dto.getPlaceName())
-                .latitude(dto.getLat())
-                .longitude(dto.getLng())
+                .prisonPlaceName(dto.getPrisonPlaceName())
+                .placeAddress(dto.getAddress())
+                .prisonAddress(dto.getPrisonAddress())
+                .latitude(lat)
+                .longitude(lng)
                 .meetingTime(dto.getMeetingTime())
                 .capacityPolice(dto.getPolice_capacity())
                 .capacityThief(dto.getThief_capacity())
@@ -91,6 +109,18 @@ public class RoomService {
                 .build();
     }
 
+    @Transactional
+    public void deleteRoom(Long roomId, Long userId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_NOT_FOUND));
+
+        if (!room.getHost().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.ONLY_HOST_ALLOWED);
+        }
+
+        roomRepository.delete(room);
+    }
+
     @Transactional(readOnly = true)
     public RoomDetailResponseDto getRoomDetail(Long roomId) {
         // 1. 방 존재 여부 확인
@@ -104,4 +134,25 @@ public class RoomService {
         return roomConverter.convertToRoomDetailDto(room, members);
     }
 
+    public PlaceSearchResponseDto searchPlaces(String keyword, Long userId) {
+        long now = System.currentTimeMillis();
+        Long lastCall = searchRateLimit.get(userId);
+        if (lastCall != null && now - lastCall < 3000) {
+            throw new BusinessException(ErrorCode.TOO_MANY_REQUESTS);
+        }
+        searchRateLimit.put(userId, now);
+
+        List<PlaceResult> results = naverSearchService.searchPlaces(keyword);
+
+        List<PlaceSearchResponseDto.PlaceItem> places = results.stream()
+                .map(r -> PlaceSearchResponseDto.PlaceItem.builder()
+                        .name(r.name())
+                        .address(r.address())
+                        .build())
+                .toList();
+
+        return PlaceSearchResponseDto.builder()
+                .places(places)
+                .build();
+    }
 }

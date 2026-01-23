@@ -6,9 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface RoomRepository extends JpaRepository<Room, Long> {
+
+    List<Room> findByMeetingTimeBefore(LocalDateTime time);
 
     @Query(value = "SELECT * FROM rooms r WHERE ST_Distance_Sphere(point(r.longitude, r.latitude), point(:lon, :lat)) <= :radius", nativeQuery = true)
     List<Room> findRoomsWithinRadius(@Param("lon") double lon, @Param("lat") double lat, @Param("radius") double radius);

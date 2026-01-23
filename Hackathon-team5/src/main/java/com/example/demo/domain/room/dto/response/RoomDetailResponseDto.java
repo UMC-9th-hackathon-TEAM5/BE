@@ -25,6 +25,15 @@ public class RoomDetailResponseDto {
     @Schema(description = "장소 이름", example = "홍대입구역 9번 출구")
     private String placeName;
 
+    @Schema(description = "장소 주소", example = "홍대입구역 9번 출구")
+    private String placeAddress;
+
+    @Schema(description = "감옥 장소 이름", example = "홍대입구역 9번 출구 앞")
+    private String prisonPlaceName;
+
+    @Schema(description = "감옥 주소", example = "홍대입구역 9번 출구")
+    private String prisonPlaceAddress;
+
     @Schema(description = "만남 시간", example = "2026-01-10T18:00:00")
     private LocalDateTime meetingTime;
 

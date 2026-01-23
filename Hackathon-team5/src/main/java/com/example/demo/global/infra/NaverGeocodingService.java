@@ -20,7 +20,14 @@ public class NaverGeocodingService {
     public NaverGeocodingService(
             @Value("${naver.maps.client-id}") String clientId,
             @Value("${naver.maps.client-secret}") String clientSecret
+
     ) {
+        log.info("==================================================");
+        log.info(">>> [DEBUG] Naver Maps Client ID: {}", clientId);
+        
+        log.info(">>> [DEBUG] Naver Maps Secret: {}", clientSecret);
+        log.info("==================================================");
+
         this.webClient = WebClient.builder()
                 .baseUrl("https://naveropenapi.apigw.ntruss.com/map-geocode/v2")
                 .defaultHeader("X-NCP-APIGW-API-KEY-ID", clientId)

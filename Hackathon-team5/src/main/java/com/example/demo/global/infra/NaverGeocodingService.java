@@ -16,6 +16,8 @@ import java.util.Map;
 public class NaverGeocodingService {
 
     private final WebClient webClient;
+    private final String clientId;
+    private final String clientSecret;
 
     public NaverGeocodingService(
             @Value("${naver.maps.client-id}") String clientId,
@@ -24,14 +26,14 @@ public class NaverGeocodingService {
     ) {
         log.info("==================================================");
         log.info(">>> [DEBUG] Naver Maps Client ID: {}", clientId);
-        
+
         log.info(">>> [DEBUG] Naver Maps Secret: {}", clientSecret);
         log.info("==================================================");
 
+        this.clientId = clientId.trim();
+        this.clientSecret = clientSecret.trim();
         this.webClient = WebClient.builder()
                 .baseUrl("https://naveropenapi.apigw.ntruss.com/map-geocode/v2")
-                .defaultHeader("X-NCP-APIGW-API-KEY-ID", clientId.trim())
-                .defaultHeader("X-NCP-APIGW-API-KEY", clientSecret.trim())
                 .build();
     }
 
@@ -41,6 +43,8 @@ public class NaverGeocodingService {
                         .path("/geocode")
                         .queryParam("query", address)
                         .build())
+                .header("X-NCP-APIGW-API-KEY-ID", clientId)
+                .header("X-NCP-APIGW-API-KEY", clientSecret)
                 .retrieve()
                 .bodyToMono(Map.class)
                 .block();

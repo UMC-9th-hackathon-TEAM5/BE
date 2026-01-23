@@ -10,6 +10,7 @@ import com.example.demo.domain.room_member.dto.request.AssignRolesRequestDto;
 import com.example.demo.domain.room_member.dto.request.JoinRoomRequestDto;
 import com.example.demo.domain.room_member.dto.response.AssignRolesResponseDto;
 import com.example.demo.domain.room_member.dto.response.CaptureThiefResponseDto;
+import com.example.demo.domain.room_member.dto.response.ArrivalToggleResponseDto;
 import com.example.demo.domain.room_member.dto.response.JoinRoomResponseDto;
 import com.example.demo.domain.room_member.dto.response.LeaveRoomResponseDto;
 import com.example.demo.domain.room_member.dto.response.ParticipantResponseDto;
@@ -49,7 +50,7 @@ public class RoomMemberService {
     private final WebSocketMessageService webSocketMessageService;
 
     @Transactional
-    public void markAsArrived(Long roomId, Long targetUserId, Long hostUserId) {
+    public ArrivalToggleResponseDto toggleArrival(Long roomId, Long targetUserId, Long hostUserId) {
         // 1. 방 존재 여부 확인
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_NOT_FOUND));
@@ -68,8 +69,20 @@ public class RoomMemberService {
         RoomMember targetMember = roomMemberRepository.findByRoom_IdAndUser_Id(roomId, targetUserId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_MEMBER_NOT_FOUND));
 
-        // 5. 도착 상태 업데이트
-        targetMember.updateToArrived();
+        // 5. 도착 상태 토글
+        boolean isArrived = targetMember.toggleArrival();
+
+        // 6. 응답 DTO 생성
+        ArrivalToggleResponseDto response = ArrivalToggleResponseDto.builder()
+                .targetUserId(targetUserId)
+                .targetNickname(targetMember.getUser().getNickname())
+                .isArrived(isArrived)
+                .build();
+
+        // 7. WebSocket으로 도착 상태 변경 이벤트 전송
+        webSocketMessageService.sendEventToRoom(roomId, "ARRIVAL_TOGGLED", response);
+
+        return response;
     }
 
     @Transactional(readOnly = true)

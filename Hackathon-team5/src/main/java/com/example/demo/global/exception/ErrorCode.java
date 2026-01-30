@@ -54,7 +54,8 @@ public enum ErrorCode {
     NOT_JOINED_ROOM(HttpStatus.BAD_REQUEST, "BUSINESS_010", "참가하지 않은 방입니다."),
     FILE_UPLOAD_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_004", "파일 업로드 중 오류가 발생했습니다."),
     GEOCODING_FAILED(HttpStatus.BAD_REQUEST, "COMMON_005", "주소를 좌표로 변환할 수 없습니다."),
-    TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "COMMON_006", "요청이 너무 빠릅니다. 잠시 후 다시 시도해주세요.");
+    TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "COMMON_006", "요청이 너무 빠릅니다. 잠시 후 다시 시도해주세요."),
+    INVALID_LOCATION(HttpStatus.BAD_REQUEST, "COMMON_007", "유효하지 않은 위치 정보입니다. 위도는 -90~90, 경도는 -180~180 범위여야 합니다.");
 
 
     // TODO: 비즈니스 로직 개발하면서 필요한 에러코드들 추가

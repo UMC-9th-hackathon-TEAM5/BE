@@ -59,4 +59,15 @@ public class RoomGameState {
         this.playingAt = playingAt;
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void resetForNewGame() {
+        // 새 게임을 위한 초기화 (이전 게임 정보 제거)
+        this.gameImageUrl = null;
+        this.playingAt = null;
+        this.playtimeSeconds = 0;
+        this.finishedAt = null;
+        this.finishReason = null;
+        this.winningTeam = null;
+        this.updatedAt = LocalDateTime.now();
+    }
 }

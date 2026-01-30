@@ -263,26 +263,38 @@ public class RoomMemberService {
 
     @Transactional
     public CaptureThiefResponseDto captureThief(Long roomId, Long thiefUserId, Long policeUserId) {
+        System.out.println("=== 도둑 검거 시작 ===");
+        System.out.println("roomId: " + roomId + ", thiefUserId: " + thiefUserId + ", policeUserId: " + policeUserId);
+        
         // 1. 방 존재 및 게임 진행 상태 확인
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_NOT_FOUND));
 
+        System.out.println("방 상태: " + room.getStatus());
         if (room.getStatus() != RoomStatus.PLAYING) {
-            throw new BusinessException(ErrorCode.ROOM_NOT_IN_WAITING_STATUS, "게임이 진행 중인 방에서만 검거가 가능합니다.");
+            throw new BusinessException(ErrorCode.ROOM_NOT_IN_PLAYING_STATUS);
         }
 
         // 2. 경찰 확인
         RoomMember police = roomMemberRepository.findByRoom_IdAndUser_Id(roomId, policeUserId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_MEMBER_NOT_FOUND));
+                .orElseThrow(() -> {
+                    System.out.println("경찰을 찾을 수 없음: roomId=" + roomId + ", userId=" + policeUserId);
+                    return new BusinessException(ErrorCode.ROOM_MEMBER_NOT_FOUND);
+                });
 
+        System.out.println("경찰 역할: " + police.getRole());
         if (police.getRole() != Role.POLICE) {
             throw new BusinessException(ErrorCode.FORBIDDEN, "경찰만 도둑을 잡을 수 있습니다.");
         }
 
         // 3. 도둑 확인
         RoomMember thief = roomMemberRepository.findByRoom_IdAndUser_Id(roomId, thiefUserId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_MEMBER_NOT_FOUND));
+                .orElseThrow(() -> {
+                    System.out.println("도둑을 찾을 수 없음: roomId=" + roomId + ", userId=" + thiefUserId);
+                    return new BusinessException(ErrorCode.ROOM_MEMBER_NOT_FOUND);
+                });
 
+        System.out.println("도둑 역할: " + thief.getRole() + ", 상태: " + thief.getThiefState());
         if (thief.getRole() != Role.THIEF) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "검거 대상이 도둑이 아닙니다.");
         }
@@ -290,6 +302,8 @@ public class RoomMemberService {
         if (thief.getThiefState() == ThiefState.CAUGHT) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "이미 검거된 도둑입니다.");
         }
+        
+        System.out.println("검거 진행중...");
 
         // 4. 도둑 상태 업데이트 (검거 처리)
         thief.updateToCaught(police.getUser());

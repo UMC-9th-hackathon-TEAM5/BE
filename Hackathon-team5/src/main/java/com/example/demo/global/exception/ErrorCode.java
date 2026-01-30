@@ -47,7 +47,7 @@ public enum ErrorCode {
     ROOM_FULL(HttpStatus.BAD_REQUEST, "BUSINESS_004", "방 정원이 가득 찼습니다."),
     ROLE_CAPACITY_FULL(HttpStatus.BAD_REQUEST, "BUSINESS_005", "선택한 역할군의 정원이 가득 찼습니다."),
     ROOM_NOT_IN_PLAYING_STATUS(HttpStatus.BAD_REQUEST, "BUSINESS_006", "게임 중인 방에서만 가능한 작업입니다."),
-    GAME_NOT_STARTED(HttpStatus.BAD_REQUEST, "BUSINESS_006", "게임이 진행 중일 때만 가능합니다."),
+    GAME_NOT_STARTED(HttpStatus.BAD_REQUEST, "BUSINESS_011", "게임이 진행 중일 때만 가능합니다."),
     NOT_A_THIEF(HttpStatus.BAD_REQUEST, "BUSINESS_007", "도둑만 탈옥할 수 있습니다."),
     NOT_IN_JAIL(HttpStatus.BAD_REQUEST, "BUSINESS_008", "현재 감옥에 갇힌 상태가 아닙니다."),
     HOST_CANNOT_LEAVE(HttpStatus.BAD_REQUEST, "BUSINESS_009", "방장은 방을 나갈 수 없습니다."),

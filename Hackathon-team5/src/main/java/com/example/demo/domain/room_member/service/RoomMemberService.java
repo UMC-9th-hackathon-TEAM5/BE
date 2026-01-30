@@ -203,7 +203,7 @@ public class RoomMemberService {
         }
     }
 
-    @Transactional
+    @Transactional(isolation = org.springframework.transaction.annotation.Isolation.SERIALIZABLE)
     public AssignRolesResponseDto assignRolesAndStartGame(Long roomId, AssignRolesRequestDto request, Long hostUserId) {
         // 1. 방 존재 여부 확인
         Room room = roomRepository.findById(roomId)
@@ -295,10 +295,8 @@ public class RoomMemberService {
         thief.updateToCaught(police.getUser());
         police.updateCaughtCount();
 
-        // 5. 남은 도둑 수 계산
-        List<RoomMember> allThieves = roomMemberRepository.findAllByRoomIdWithUser(roomId).stream()
-                .filter(m -> m.getRole() == Role.THIEF && m.getThiefState() != ThiefState.CAUGHT)
-                .toList();
+        // 5. 남은 도둑 수 계산 (DB에서 직접 필터링)
+        List<RoomMember> allThieves = roomMemberRepository.findByRoomIdAndRoleAndThiefStateNot(roomId, Role.THIEF, ThiefState.CAUGHT);
         int remainingThieves = allThieves.size();
 
         // 6. 응답 DTO 생성

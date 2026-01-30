@@ -37,7 +37,7 @@ public class Room extends BaseEntity {
     private Integer escapeTime;
 
     @Column(columnDefinition = "TEXT")
-    private String discription;
+    private String description;
 
     @Column(name = "capacity_police", nullable = false)
     private Integer capacityPolice;

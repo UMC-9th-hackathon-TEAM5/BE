@@ -24,4 +24,9 @@ public class User extends BaseEntity {
 
     @Column(nullable = false, precision = 10, scale = 7)
     private BigDecimal longitude;
+
+    public void updateLocation(BigDecimal latitude, BigDecimal longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
 }

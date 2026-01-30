@@ -1,8 +1,6 @@
 package com.example.demo.domain.room_member.controller;
 
 import com.example.demo.common.response.ApiResponse;
-import com.example.demo.domain.room.entity.Room;
-import com.example.demo.domain.room.repository.RoomRepository;
 import com.example.demo.domain.room_member.dto.request.AssignRolesRequestDto;
 import com.example.demo.domain.room_member.dto.request.JoinRoomRequestDto;
 import com.example.demo.domain.room_member.dto.response.AssignRolesResponseDto;
@@ -36,7 +34,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class RoomMemberController {
     private final RoomMemberService roomMemberService;
     private final S3Service s3Service;
-    private final RoomRepository roomRepository;
 
     @PatchMapping("/roles")
     @Operation(summary = "팀 배정 및 게임 시작", description = "방장 전용")
@@ -113,15 +110,7 @@ public class RoomMemberController {
             @Parameter(hidden = true) @AuthUser Long userId,
             @Parameter(description = "바꾸려는 user ID") @PathVariable Long targetUserId,
             @Parameter(description = "방 ID") @PathVariable Long roomId) {
-        Room room = roomRepository.findById(roomId).orElseThrow(() -> new BusinessException(ErrorCode.ROOM_NOT_FOUND));
-        Long hostUserId = room.getHost().getId();
-
-        if (!userId.equals(hostUserId)) {
-            throw new BusinessException(ErrorCode.ONLY_HOST_ALLOWED);
-        }
-
-        ArrivalToggleResponseDto response = roomMemberService.toggleArrival(roomId, targetUserId, hostUserId);
-
+        ArrivalToggleResponseDto response = roomMemberService.toggleArrival(roomId, targetUserId, userId);
         return ApiResponse.success(response);
     }
 

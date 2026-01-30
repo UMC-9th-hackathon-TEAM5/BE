@@ -135,24 +135,52 @@ public class RoomMemberService {
                 room.getCapacityThief()
         );
 
-        // 8. RoomMember 생성 및 저장
+        // 8. 역할 선호도를 실제 역할로 변환
+        Role assignedRole = convertRolePreferenceToRole(finalRolePreference);
+
+        // 9. RoomMember 생성 및 저장
         RoomMember newMember = RoomMember.builder()
                 .room(room)
                 .user(user)
                 .joinStatus(JoinStatus.JOINED)
                 .rolePreference(finalRolePreference)
+                .role(assignedRole)  // 역할 즉시 배정
                 .isArrived(false)
                 .build();
         roomMemberRepository.save(newMember);
 
         System.out.println("방 참가 완료 - roomId: " + roomId + ", userId: " + userId + ", rolePreference: " + finalRolePreference);
 
-        return JoinRoomResponseDto.builder()
+        JoinRoomResponseDto response = JoinRoomResponseDto.builder()
                 .roomId(roomId)
                 .userId(userId)
-                .rolePreference(finalRolePreference.name())
+                .rolePreference(finalRolePreference != null ? finalRolePreference.name() : "UNKNOWN")
                 .message("방 참가에 성공했습니다.")
                 .build();
+        
+        System.out.println("응답 생성 완료: " + response);
+        System.out.println("  - roomId: " + response.getRoomId());
+        System.out.println("  - userId: " + response.getUserId());
+        System.out.println("  - rolePreference: " + response.getRolePreference());
+        
+        return response;
+    }
+
+    /**
+     * RolePreference를 실제 Role로 변환
+     */
+    private Role convertRolePreferenceToRole(RolePreference rolePreference) {
+        if (rolePreference == null) {
+            return null;
+        }
+        switch (rolePreference) {
+            case POLICE:
+                return Role.POLICE;
+            case THIEF:
+                return Role.THIEF;
+            default:
+                return null;
+        }
     }
 
     /**
@@ -165,6 +193,11 @@ public class RoomMemberService {
             Integer policeCapacity,
             Integer thiefCapacity
     ) {
+        // null 체크: rolePreference가 없으면 RANDOM으로 처리
+        if (requestedPreference == null) {
+            requestedPreference = JoinRoomRequestDto.RolePreference.RANDOM;
+        }
+
         // 현재 역할군별 인원 계산
         long currentPoliceCount = currentMembers.stream()
                 .filter(m -> m.getRolePreference() == RolePreference.POLICE)

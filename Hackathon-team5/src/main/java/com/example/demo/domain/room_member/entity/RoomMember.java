@@ -71,6 +71,13 @@ public class RoomMember extends BaseEntity {
 
     public void assignRole(Role role) {
         this.role = role;
+        // 도둑 역할이면 thiefState를 ALIVE로 초기화
+        if (role == Role.THIEF) {
+            this.thiefState = ThiefState.ALIVE;
+        } else {
+            // 경찰이면 thiefState는 null로
+            this.thiefState = null;
+        }
     }
 
     public void updateToCaught(User policeUser) {

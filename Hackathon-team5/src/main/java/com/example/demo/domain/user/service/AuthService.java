@@ -29,6 +29,8 @@ public class AuthService {
                     if(!passwordEncoder.matches(request.getPassword(), existingUser.getPasswordHash())) {
                         throw new BusinessException(ErrorCode.INVALID_PASSWORD);
                     }
+                    // 로그인 시 사용자의 최신 위치 정보 업데이트
+                    existingUser.updateLocation(request.getLat(), request.getLng());
                     return existingUser;
                 })
                 // 없다면 새로운 유저로 자동 가입

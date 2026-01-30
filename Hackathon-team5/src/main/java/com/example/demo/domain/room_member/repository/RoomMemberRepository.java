@@ -1,11 +1,11 @@
 package com.example.demo.domain.room_member.repository;
 
 import com.example.demo.domain.room_member.entity.RoomMember;
+import com.example.demo.domain.room_member.entity.enums.Role;
+import com.example.demo.domain.room_member.entity.enums.ThiefState;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import java.util.List;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,4 +21,8 @@ public interface RoomMemberRepository extends JpaRepository<RoomMember, Long> {
     // 특정 방의 모든 멤버 조회 (User 정보도 함께 fetch join)
     @Query("SELECT rm FROM RoomMember rm JOIN FETCH rm.user WHERE rm.room.id = :roomId")
     List<RoomMember> findAllByRoomIdWithUser(@Param("roomId") Long roomId);
+
+    // 특정 방의 특정 역할이면서 특정 상태가 아닌 멤버 조회
+    @Query("SELECT rm FROM RoomMember rm JOIN FETCH rm.user WHERE rm.room.id = :roomId AND rm.role = :role AND rm.thiefState != :thiefState")
+    List<RoomMember> findByRoomIdAndRoleAndThiefStateNot(@Param("roomId") Long roomId, @Param("role") Role role, @Param("thiefState") ThiefState thiefState);
 }

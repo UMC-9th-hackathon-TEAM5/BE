@@ -42,12 +42,12 @@ public class CreateRoomRequestDto {
     @Schema(description = "모집하는 경찰 수", example = "5")
     @NotNull(message = "모집하는 경찰 수는 필수입니다.")
     @Min(value = 1, message = "최소 1명 이상이어야 합니다.")
-    private Integer police_capacity;
+    private Integer policeCapacity;
 
     @Schema(description = "모집하는 도둑 수", example = "5")
     @NotNull(message = "모집하는 도둑 수 필수입니다.")
     @Min(value = 1, message = "최소 1명 이상이어야 합니다.")
-    private Integer thief_capacity;
+    private Integer thiefCapacity;
 
     @Schema(description = "제한시간(분)", example = "60")
     @NotNull(message = "제한시간은 필수입니다.")

@@ -24,10 +24,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,7 +41,12 @@ public class RoomService {
     private final RoomConverter roomConverter;
     private final NaverGeocodingService naverGeocodingService;
     private final NaverSearchService naverSearchService;
-    private final Map<Long, Long> searchRateLimit = new ConcurrentHashMap<>();
+    
+    // Caffeine Cache로 변경: 자동으로 만료되고 메모리 누수 없음
+    private final Cache<Long, Long> searchRateLimit = Caffeine.newBuilder()
+            .expireAfterWrite(3, TimeUnit.SECONDS)
+            .maximumSize(10000)
+            .build();
 
     @Transactional
     public CreateRoomResponseDto createRoom(CreateRoomRequestDto dto, Long userId) {
@@ -59,8 +66,8 @@ public class RoomService {
                 .latitude(lat)
                 .longitude(lng)
                 .meetingTime(dto.getMeetingTime())
-                .capacityPolice(dto.getPolice_capacity())
-                .capacityThief(dto.getThief_capacity())
+                .capacityPolice(dto.getPoliceCapacity())
+                .capacityThief(dto.getThiefCapacity())
                 .status(RoomStatus.WAITING)
                 .escapeTime(dto.getEscapeTime())
                 .countdownSeconds(dto.getCountdownSeconds())
@@ -90,17 +97,32 @@ public class RoomService {
         // 1. 사용자 정보 조회 (사용자의 현재 위도, 경도 활용)
         User user = userService.getUserById(userId);
 
-        // 2. 반경 2km(2000m) 고정 조회
-        double FIXED_RADIUS = 3000.0;
-        List<Room> rooms = roomRepository.findRoomsWithinRadius(
-                user.getLongitude().doubleValue(),
-                user.getLatitude().doubleValue(),
-                FIXED_RADIUS
-        );
+        // 2. 좌표 유효성 검증
+        BigDecimal userLat = user.getLatitude();
+        BigDecimal userLon = user.getLongitude();
+        
+        if (userLat == null || userLon == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        
+        double lat = userLat.doubleValue();
+        double lon = userLon.doubleValue();
+        
+        // 위도/경도 범위 검증
+        if (lat < -90 || lat > 90) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        if (lon < -180 || lon > 180) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
 
-        // 3. DTO 변환 및 거리 계산
+        // 3. 반경 3km(3000m) 고정 조회
+        double FIXED_RADIUS = 3000.0;
+        List<Room> rooms = roomRepository.findRoomsWithinRadius(lon, lat, FIXED_RADIUS);
+
+        // 4. DTO 변환 및 거리 계산
         List<NearbyRoomDataResponseDto> roomDataList = rooms.stream()
-                .map(room -> roomConverter.convertToDataDto(room, user.getLatitude(), user.getLongitude()))
+                .map(room -> roomConverter.convertToDataDto(room, userLat, userLon))
                 .collect(Collectors.toList());
 
         return NearbyRoomsResponseDto.builder()
@@ -134,9 +156,12 @@ public class RoomService {
         return roomConverter.convertToRoomDetailDto(room, members);
     }
 
+    @Transactional(readOnly = true)
     public PlaceSearchResponseDto searchPlaces(String keyword, Long userId) {
         long now = System.currentTimeMillis();
-        Long lastCall = searchRateLimit.get(userId);
+        
+        // computeIfPresent를 사용하여 thread-safe하게 rate limit 체크
+        Long lastCall = searchRateLimit.get(userId, k -> null);
         if (lastCall != null && now - lastCall < 3000) {
             throw new BusinessException(ErrorCode.TOO_MANY_REQUESTS);
         }

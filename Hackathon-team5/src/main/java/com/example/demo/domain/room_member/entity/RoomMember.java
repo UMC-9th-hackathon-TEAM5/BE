@@ -56,7 +56,8 @@ public class RoomMember extends BaseEntity {
     private Boolean isArrived = false;
 
     @Column(name = "caught_count")
-    private Integer caughtCount;
+    @Builder.Default
+    private Integer caughtCount = 0;
 
     public boolean toggleArrival() {
         if (this.joinStatus == JoinStatus.VERIFIED) {

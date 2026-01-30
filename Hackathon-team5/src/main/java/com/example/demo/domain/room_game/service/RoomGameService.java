@@ -3,13 +3,17 @@ package com.example.demo.domain.room_game.service;
 import com.example.demo.domain.room.entity.Room;
 import com.example.demo.domain.room.entity.enums.RoomStatus;
 import com.example.demo.domain.room.repository.RoomRepository;
+import com.example.demo.domain.room_game.dto.response.GameHistoryResponseDto;
 import com.example.demo.domain.room_game.dto.response.GameStatusResponseDto;
+import com.example.demo.domain.room_game.entity.GameHistory;
 import com.example.demo.domain.room_game.entity.RoomGameState;
 import com.example.demo.domain.room_game.entity.enums.FinishReason;
 import com.example.demo.domain.room_game.entity.enums.WinningTeam;
+import com.example.demo.domain.room_game.repository.GameHistoryRepository;
 import com.example.demo.domain.room_game.repository.RoomGameStateRepository;
 import com.example.demo.domain.room_member.entity.RoomMember;
 import com.example.demo.domain.room_member.entity.enums.Role;
+import com.example.demo.domain.room_member.entity.enums.ThiefState;
 import com.example.demo.domain.room_member.repository.RoomMemberRepository;
 import com.example.demo.global.exception.BusinessException;
 import com.example.demo.global.exception.ErrorCode;
@@ -27,6 +31,7 @@ import java.util.stream.Collectors;
 public class RoomGameService {
 
     private final RoomGameStateRepository roomGameStateRepository;
+    private final GameHistoryRepository gameHistoryRepository;
     private final RoomRepository roomRepository;
     private final RoomMemberRepository roomMemberRepository;
     private final WebSocketMessageService webSocketMessageService;
@@ -49,11 +54,39 @@ public class RoomGameService {
         // 4. 게임 종료 처리
         gameState.finishGame(finishReason, winningTeam);
 
-        // 5. 방 상태를 WAITING으로 변경
+        // 5. 참가자 목록 조회 (통계 계산용)
+        List<RoomMember> members = roomMemberRepository.findAllByRoomIdWithUser(roomId);
+        
+        // 6. 게임 통계 계산
+        long totalPolice = members.stream().filter(m -> m.getRole() == Role.POLICE).count();
+        long totalThieves = members.stream().filter(m -> m.getRole() == Role.THIEF).count();
+        long caughtThieves = members.stream()
+                .filter(m -> m.getRole() == Role.THIEF && m.getThiefState() == ThiefState.CAUGHT)
+                .count();
+
+        // 7. 게임 히스토리 저장 (종료된 게임 정보 보관)
+        GameHistory gameHistory = GameHistory.builder()
+                .room(room)
+                .gameImageUrl(gameState.getGameImageUrl())
+                .playingAt(gameState.getPlayingAt())
+                .finishedAt(gameState.getFinishedAt())
+                .playtimeSeconds(gameState.getPlaytimeSeconds())
+                .finishReason(finishReason)
+                .winningTeam(winningTeam)
+                .totalPolice((int) totalPolice)
+                .totalThieves((int) totalThieves)
+                .caughtThieves((int) caughtThieves)
+                .build();
+        gameHistoryRepository.save(gameHistory);
+        
+        // 8. RoomGameState 초기화 (다음 게임을 위해)
+        gameState.resetForNewGame();
+
+        // 9. 방 상태를 WAITING으로 변경
         room.updateStatus(RoomStatus.WAITING);
 
-        // 6. 참가자 목록 조회
-        List<RoomMember> members = roomMemberRepository.findAllByRoomIdWithUser(roomId);
+        // 10. 모든 참가자의 게임 상태 초기화 (역할, 도둑 상태, 검거 정보 등)
+        members.forEach(RoomMember::resetGameState);
 
         // 8. 참가자 정보 변환
         List<GameStatusResponseDto.GameParticipant> participants = members.stream()
@@ -99,5 +132,25 @@ public class RoomGameService {
                 System.out.println("게임 상태 생성: roomId=" + roomId);
             }
         );
+    }
+
+    public List<GameHistoryResponseDto> getGameHistories(Long roomId) {
+        List<GameHistory> histories = gameHistoryRepository.findByRoomIdOrderByFinishedAtDesc(roomId);
+        
+        return histories.stream()
+                .map(history -> GameHistoryResponseDto.builder()
+                        .gameId(history.getId())
+                        .roomId(roomId)
+                        .gameImageUrl(history.getGameImageUrl())
+                        .playingAt(history.getPlayingAt())
+                        .finishedAt(history.getFinishedAt())
+                        .playtimeSeconds(history.getPlaytimeSeconds())
+                        .finishReason(history.getFinishReason().name())
+                        .winningTeam(history.getWinningTeam().name())
+                        .totalPolice(history.getTotalPolice())
+                        .totalThieves(history.getTotalThieves())
+                        .caughtThieves(history.getCaughtThieves())
+                        .build())
+                .collect(Collectors.toList());
     }
 }

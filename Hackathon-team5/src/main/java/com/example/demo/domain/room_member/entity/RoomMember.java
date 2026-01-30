@@ -102,5 +102,17 @@ public class RoomMember extends BaseEntity {
         this.caughtAt = null;
 
     }
+
+    public void resetGameState() {
+        // 게임 종료 후 다시 대기 상태로 돌릴 때 초기화
+        this.role = null;
+        this.thiefState = null;
+        this.caughtByUser = null;
+        this.escapedByUser = null;
+        this.caughtAt = null;
+        this.caughtCount = 0;
+        this.joinStatus = JoinStatus.JOINED;
+        this.isArrived = false;
+    }
 }
 

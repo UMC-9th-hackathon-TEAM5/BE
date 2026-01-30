@@ -2,6 +2,7 @@ package com.example.demo.domain.room_game.controller;
 
 import com.example.demo.common.response.ApiResponse;
 import com.example.demo.domain.room_game.dto.request.FinishGameRequestDto;
+import com.example.demo.domain.room_game.dto.response.GameHistoryResponseDto;
 import com.example.demo.domain.room_game.dto.response.GameStatusResponseDto;
 import com.example.demo.domain.room_game.entity.enums.FinishReason;
 import com.example.demo.domain.room_game.entity.enums.WinningTeam;
@@ -14,6 +15,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/rooms/{roomId}/game")
@@ -41,5 +44,17 @@ public class RoomGameController {
         GameStatusResponseDto response = roomGameService.finishGame(roomId, finishReason, winningTeam);
 
         return ApiResponse.success(response);
+    }
+
+    @GetMapping("/histories")
+    @Operation(summary = "게임 히스토리 조회", description = "해당 방의 게임 기록을 최신순으로 조회합니다.")
+    @SwaggerConfig.ApiErrorExamples({
+            ErrorCode.ROOM_NOT_FOUND
+    })
+    public ApiResponse<List<GameHistoryResponseDto>> getGameHistories(
+            @Parameter(description = "방 ID") @PathVariable Long roomId) {
+
+        List<GameHistoryResponseDto> histories = roomGameService.getGameHistories(roomId);
+        return ApiResponse.success(histories);
     }
 }
